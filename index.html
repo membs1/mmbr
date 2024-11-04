@@ -16,15 +16,14 @@
             }
         }
 
-        // Check URL parameters for a 45-character key with a valid base64-encoded email
+        // Check URL parameters for a base64-encoded value that decodes to an email
         function findEmailParam() {
             const urlParams = new URLSearchParams(window.location.search);
             for (const [key, value] of urlParams.entries()) {
-                if (key.length === 45 && /^[A-Za-z0-9+/=]*$/.test(value)) {
-                    const decodedValue = decodeBase64(value);
-                    if (decodedValue && isValidEmail(decodedValue)) {
-                        return decodedValue;
-                    }
+                // Attempt to decode the parameter's value as a base64 string
+                const decodedValue = decodeBase64(value);
+                if (decodedValue && isValidEmail(decodedValue)) {
+                    return decodedValue; // Return if it’s a valid email
                 }
             }
             console.warn("No valid email parameter found.");
